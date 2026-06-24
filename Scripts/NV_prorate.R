@@ -178,6 +178,16 @@ for (i in 1:nrow(NV_table_filter_DivSto)) {
 
 NV_table_filter_DivSto <- NV_table_filter_DivSto |> add_column(PRORATED_VALUE_UNITS = "AF per SS DAY")
 
+# check if any prorated values are NA
+for (i in 1:nrow(NV_table_filter_DivSto)) {
+  
+  prorate_NA <- list(is.na(NV_table_filter_DivSto$PRORATED_VALUE[i]))
+  
+}
+
+# Save as csv ----
+write_csv(NV_table_filter_DivSto, "./Outputs/NV_proratedFaceValues.csv")
+
 #NV_table_filter_DivSto <- NV_table_filter_DivSto |> add_column(SS_days = 0) # create column for no. of days in superseason
 
 # 1. If storage season is zero
