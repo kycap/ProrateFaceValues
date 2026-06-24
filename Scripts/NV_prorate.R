@@ -56,15 +56,7 @@ NV_table_filter <- NV_table_filter %>%
     "INI_REPORTED_DIV_UNIT"
   )
 
-### Prorate value across calendar year ----
-# Prorated monthly value for active POD over entire year
-# NV_table_filter <- NV_table_filter %>% add_column(PRORATE_VAL = 0)
-# 
-# NV_table_filter <- NV_table_filter %>%
-#   mutate(PRORATE_VAL = FACE_VALUE_AMOUNT_AF / 12) #prorated value (acre-ft) per month
-
 ### Prorate value for diversion/storage season ----
-# Calculate prorated value for rights with specified direct diversion season
 
 # Create new df/tibble with rights that have specified direct diversion and/or storage season
 NV_table_filter_DivSto <- NV_table_filter %>%
@@ -117,10 +109,7 @@ NV_table_filter_DivSto <- NV_table_filter_DivSto |>
 
 for (i in 1:nrow(NV_table_filter_DivSto)) {
   
-  #StoStart <- NV_table_filter_DivSto$STO_START[i] |> yday()
-  #StoEnd <- NV_table_filter_DivSto$STO_END[i] |> yday()
-  
-  StoStart <- NV_table_filter_DivSto$STO_START[i]
+    StoStart <- NV_table_filter_DivSto$STO_START[i]
   StoEnd <- NV_table_filter_DivSto$STO_END[i]
   
   if (is.na(StoStart)) {
@@ -187,153 +176,3 @@ for (i in 1:nrow(NV_table_filter_DivSto)) {
 
 # Save as csv ----
 write_csv(NV_table_filter_DivSto, "./Outputs/NV_proratedFaceValues.csv")
-
-#NV_table_filter_DivSto <- NV_table_filter_DivSto |> add_column(SS_days = 0) # create column for no. of days in superseason
-
-# 1. If storage season is zero
-for (i in 1:nrow(NV_table_filter_DivSto)) {
-  if (NV_table_filter_DivSto$STO_DAYS_LENGTH[i] == 0) {
-    NV_table_filter_DivSto$SS_days[i] = NV_table_filter_DivSto$DIV_DAYS_LENGTH[i]
-  }
-}
-
-# 2. If direct diversion season is zero
-for (i in 1:nrow(NV_table_filter_DivSto)) {
-  if (NV_table_filter_DivSto$DIV_DAYS_LENGTH[i] == 0) {
-    NV_table_filter_DivSto$SS_days[i] = NV_table_filter_DivSto$STO_DAYS_LENGTH[i]
-  }
-}
-
-NV_table_filter_DivSto <- NV_table_filter_DivSto |> add_column(SS_start = 0) # ordinal starting day of superseason
-NV_table_filter_DivSto <- NV_table_filter_DivSto |> add_column(SS_end = 0) # ordinal ending day of superseason
-
-# 3. If diversion start date is less than or equal to storage start date, the superseason start equals diversion start
-for (i in 1:nrow(NV_table_filter_DivSto)) {
-  if (!is.na(NV_table_filter_DivSto$DIV_DAYS_LIST[[i]][1]) <= !is.na(NV_table_filter_DivSto$STO_DAYS_LIST[[i]][1])) {
-    NV_table_filter_DivSto$SS_start = NV_table_filter_DivSto$DIV_DAYS_LIST[[i]][1]
-  }
-}
-
-#4. If diversion start date is greater than storage start date, superseason start equals storage start
-for (i in 1:nrow(NV_table_filter_DivSto)) {
-  if (!is.na(NV_table_filter_DivSto$DIV_DAYS_LIST[[i]][1] > !is.na(NV_table_filter_DivSto$STO_DAYS_LIST[[i]][1]))) {
-    NV_table_filter_DivSto$SS_start = NV_table_filter_DivSto$STO_DAYS_LIST[[i]][1]
-  }
-}
-
-# 5. If diversion end date is less than or equal to storage end, then superseason end equals storage end
-
-
-# 6. If diversion end date is greater than storage end, then superseason end equals diversion end
-
-
-
-
-
-# NV_table_filter_DivSto$STO_START |> yday()
-# NV_table_filter_DivSto$STO_END |> yday()
-# 
-# NV_table_filter_DivSto$STO_DAYS_LIST <- nrow(NV_table_filter_DivSto)
-# NV_table_filter_DivSto$STO_DAYS_LENGTH <- nrow(NV_table_filter_DivSto)
-
-
-
-
-
-# Ultimate length of combined diversion/storage season ----
-# This length used for prorated value
-# Account for overlaps in the seasons (e.g., div: 12/01 - 03/31, sto: 01/01 - 03/31)
-
-NV_table_filter_DivSto <- NV_table_filter_DivSto %>%
-  mutate(
-    # raw durations
-    diversion_len = as.numeric(difftime(DIV_END, DIV_START, units = "days")),
-    storage_len   = as.numeric(difftime(STO_END, STO_START, units = "days")),
-    
-    # overlap between the two intervals
-    overlap = pmax(
-      0,
-      as.numeric(
-        difftime(
-          pmin(DIV_END, STO_END),
-          pmax(DIV_START, STO_START),
-          units = "days"
-        )
-      )
-    ),
-    
-    # final non-overlapping total
-    total_length = diversion_len + storage_len - overlap
-  )
-# above produced NA when there were NA in any of the date columns
-
-NV_table_filter_DivSto <- NV_table_filter_DivSto %>%
-  mutate(
-    # durations for diversion and storage
-    diversion_len = if_else(
-      !is.na(DIV_START) & !is.na(DIV_END),
-      as.numeric(DIV_END - DIV_START),
-      NA_real_
-    ),
-    storage_len = if_else(
-      !is.na(STO_START) & !is.na(STO_END),
-      as.numeric(STO_END - STO_START),
-      NA_real_
-    ),
-    
-    # the overlap b/w DIV and STO
-    overlap = if_else(
-      !is.na(DIV_START) & !is.na(DIV_END) &
-      !is.na(STO_START) & !is.na(STO_END),
-      pmax(
-        0,
-        as.numeric(
-          pmin(DIV_END, STO_END) - pmax(DIV_START, STO_START)
-        )
-      ),
-      NA_real_
-    ),
-    
-    # Total length (after removing overlap)
-    total_length = diversion_len + storage_len - overlap
-  )
-# above also returned NAs for total length. I already have DIV_DAYS_LENGTH
-# and STO_DAYS_LENGTH, so I think I can start from calc. overlap
-
-NV_table_filter_DivSto <- NV_table_filter_DivSto |>
-  mutate(
-    OVERLAP = if_else(
-      !is.na(DIV_START) & !is.na(DIV_END) &
-      !is.na(STO_START) & !is.na(STO_END),
-      pmax(
-        0, as.numeric(
-          pmin(DIV_END, STO_END) - pmax(DIV_START, STO_START)
-        )
-      ),
-      NA_real_
-    )
-  )
-
-NV_table_filter_DivSto <- NV_table_filter_DivSto |>
-  mutate(
-    DAYS_COUNT = DIV_DAYS_LENGTH + STO_DAYS_LENGTH - OVERLAP
-  )
-
-
-
-NV_table_filter_DivSto <- NV_table_filter_DivSto |>
-  mutate(
-    OVERLAP = case_when(
-      # If either interval is missing → no overlap
-      is.na(DIV_START) | is.na(DIV_END) |
-        is.na(STO_START) | is.na(STO_END) ~ 0,
-      
-      # Otherwise compute overlap
-      TRUE ~ pmax(
-        0,
-        pmin(DIV_END, STO_END) - pmax(DIV_START, STO_START)
-      )
-    ),
-    
-    DAYS_COUNT = DIV_DAYS_LENGTH + STO_DAYS_LENGTH - OVERLAP
-  )
