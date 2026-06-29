@@ -176,3 +176,4 @@ for (i in 1:nrow(NV_table_filter_DivSto)) {
 
 # Save as csv ----
 write_csv(NV_table_filter_DivSto, "./Outputs/NV_proratedFaceValues.csv")
+save(NV_table_filter_DivSto, file = "NV_proratedFaceValues.RData", ascii = TRUE)
