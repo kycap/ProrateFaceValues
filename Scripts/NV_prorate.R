@@ -13,9 +13,17 @@ base::remove(list = ls())
 ewrims_ff <- read_csv("./referenceFiles/ewrims_flat_file_pod.csv", guess_max = 10^6)
 "POD_STATUS" %in% names(ewrims_ff)
 
-mdt <- read_csv("./referenceFiles/NV_2017_2024_MDT_2026-03-11.csv") |>
-  select(-APPLICATION_NUMBER) |> rename(APPLICATION_NUMBER = ORIGINAL_APPLICATION_NUMBER) |>
-  select("APPLICATION_NUMBER", contains("MEAN_DIV", ignore.case = TRUE))
+mdt <- read_csv("./referenceFiles/NV_2017_2024_MDT_2026-03-11.csv")
+
+
+# Recombine split water rights
+mdt <- mdt |>
+  group_by(ORIGINAL_APPLICATION_NUMBER) |>
+  summarize(across(contains("MEAN_DIV"), ~ sum(., na.rm = TRUE)))
+
+
+mdt <- mdt |>
+  rename(APPLICATION_NUMBER = ORIGINAL_APPLICATION_NUMBER)
   
 
 ### Join and filter ----
@@ -176,4 +184,4 @@ for (i in 1:nrow(NV_table_filter_DivSto)) {
 
 # Save as csv ----
 write_csv(NV_table_filter_DivSto, "./Outputs/NV_proratedFaceValues.csv")
-save(NV_table_filter_DivSto, file = "NV_proratedFaceValues.RData", ascii = TRUE)
+save(NV_table_filter_DivSto, file = "./Outputs/NV_proratedFaceValues.RData", ascii = TRUE)
