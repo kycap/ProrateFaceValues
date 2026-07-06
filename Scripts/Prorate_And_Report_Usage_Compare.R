@@ -50,23 +50,6 @@ NV_df <- NV_df |> add_column(
 
 # Calculate monthly prorated face value based on SS days per month ----
 
-# To do all in one loop: From the inside, by column
-# month.abb returns all months as Jan, Feb...
-# toupper capitalizes (JAN, FEB...)
-# append _COUNT to the end and multiply by PRORATED_VALUE to create column of <MONTH>_PRO_FV
-# then continue operation by row
-# Or, separate loops to do by individual month
-# for (i in 1:nrow(NV_df)) {
-#   
-#   for (j in 1:12) {
-#     
-#     NV_df[paste0(toupper(month.abb[j]), "_PRO_FV")] <- NV_df[[paste0(toupper(month.abb[j]), "_COUNT")]][i] * NV_df$PRORATED_VALUE[i]
-#     
-#   }
-#   
-# } 
-# Nested loop, above, for given month, returns same <MONTH>_PRO_FV for all rows
-
 # January
 for (i in 1:nrow(NV_df)) {
   NV_df$JAN_PRO_FV[i] <- NV_df$JAN_COUNT[i] * NV_df$PRORATED_VALUE[i]
