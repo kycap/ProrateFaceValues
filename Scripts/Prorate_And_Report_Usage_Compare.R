@@ -300,3 +300,6 @@ shinyApp(ui, server)
 # Export ----
 write_csv(NV_df_select, "./Outputs/NV_Compare_Usage_Proated_and_Reported.csv")
 save(NV_df_select, file = "./Outputs/NV_Compare_Usage_Prorated_and_Reported.RData", ascii = TRUE)
+
+write_csv(NV_df, "./Outputs/NV_Full_Dataframe.csv")
+save(NV_df, file = "./Outputs/NV_Full_Dataframe.RData", ascii = TRUE)
