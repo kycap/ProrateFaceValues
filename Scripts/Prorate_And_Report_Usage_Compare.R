@@ -298,5 +298,5 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 
 # Export ----
-write_csv(NV_selected, "./Outputs/NV_selected.csv")
-save(NV_selected, file = "./Outputs/NV_selected.RData", ascii = TRUE)
+write_csv(NV_df_select, "./Outputs/NV_Compare_Usage_Proated_and_Reported.csv")
+save(NV_df_select, file = "./Outputs/NV_Compare_Usage_Prorated_and_Reported.RData", ascii = TRUE)
