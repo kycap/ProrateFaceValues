@@ -229,9 +229,94 @@ NV_Statements |>
   mutate(TYPE = str_extract(MONTHLY_COL, "[A-Z]+_[A-Z]+$")) |>
   ggplot() +
   geom_point(mapping = aes(x = MONTH, y = MONTHLY_VALUE, colour = TYPE)) +
-  xlab("Month") + ylab("Water Use (AF/year)")
+  xlab("") + ylab("Water Use (AF)") +
+  theme_bw()
 
-# Shiny dashboard
+# plot on pseudo-log10 scale to more easily see difference
+library(scales)
+NV_Statements |>
+  select(APPLICATION_NUMBER, POD_ID, contains("_MEAN_DIV"), contains("_PRO_AMT")) |>
+  pivot_longer(contains("_MEAN_DIV") | contains("_PRO_AMT"), names_to = "MONTHLY_COL", values_to = "MONTHLY_VALUE") |>
+  mutate(MONTH = str_extract(MONTHLY_COL, "^[A-Z]{3}") |> factor(toupper(month.abb))) |>
+  mutate(TYPE = str_extract(MONTHLY_COL, "[A-Z]+_[A-Z]+$")) |>
+  ggplot() +
+  geom_point(mapping = aes(x = MONTH, y = MONTHLY_VALUE, colour = TYPE)) +
+  scale_y_continuous(
+    trans = pseudo_log_trans(base = 10), 
+    labels = comma
+  ) +
+  xlab("") + ylab("Water Use (AF)") +
+  theme_bw()
+
+# Average all the reported and prorated monthly values ----
+months_of_year <- factor(toupper(month.abb))
+
+JAN_MEAN <- mean(NV_Statements$JAN_MEAN_DIV)
+FEB_MEAN <- mean(NV_Statements$FEB_MEAN_DIV)
+MAR_MEAN <- mean(NV_Statements$MAR_MEAN_DIV)
+APR_MEAN <- mean(NV_Statements$APR_MEAN_DIV)
+MAY_MEAN <- mean(NV_Statements$MAY_MEAN_DIV)
+JUN_MEAN <- mean(NV_Statements$JUN_MEAN_DIV)
+JUL_MEAN <- mean(NV_Statements$JUL_MEAN_DIV)
+AUG_MEAN <- mean(NV_Statements$AUG_MEAN_DIV)
+SEP_MEAN <- mean(NV_Statements$SEP_MEAN_DIV)
+OCT_MEAN <- mean(NV_Statements$OCT_MEAN_DIV)
+NOV_MEAN <- mean(NV_Statements$NOV_MEAN_DIV)
+DEC_MEAN <- mean(NV_Statements$DEC_MEAN_DIV)
+MEAN_OF_REPORTED_VALUES <- c(JAN_MEAN, FEB_MEAN, MAR_MEAN, APR_MEAN,
+                             MAY_MEAN, JUN_MEAN, JUL_MEAN, AUG_MEAN,
+                             SEP_MEAN, OCT_MEAN, NOV_MEAN, DEC_MEAN)
+
+
+# MEAN_OF_REPORTED_VALUES <- paste0(toupper(month.abb), "_MEAN_DIV") |>
+#   set_names(paste0(toupper(month.abb), "_MEAN"))
+# 
+# 
+# NV_Statements |>
+#   summarize(across(matches("^[A-Z]{3}_MEAN_DIV$"), mean)) |>
+#   rename(any_of(MEAN_OF_REPORTED_VALUES))
+
+JAN_MEAN_PRORATED <- mean(NV_Statements$JAN_PRO_AMT)
+FEB_MEAN_PRORATED <- mean(NV_Statements$FEB_PRO_AMT)
+MAR_MEAN_PRORATED <- mean(NV_Statements$MAR_PRO_AMT)
+APR_MEAN_PRORATED <- mean(NV_Statements$APR_PRO_AMT)
+MAY_MEAN_PRORATED <- mean(NV_Statements$MAY_PRO_AMT)
+JUN_MEAN_PRORATED <- mean(NV_Statements$JUN_PRO_AMT)
+JUL_MEAN_PRORATED <- mean(NV_Statements$JUL_PRO_AMT)
+AUG_MEAN_PRORATED <- mean(NV_Statements$AUG_PRO_AMT)
+SEP_MEAN_PRORATED <- mean(NV_Statements$SEP_PRO_AMT)
+OCT_MEAN_PRORATED <- mean(NV_Statements$OCT_PRO_AMT)
+NOV_MEAN_PRORATED <- mean(NV_Statements$NOV_PRO_AMT)
+DEC_MEAN_PRORATED <- mean(NV_Statements$DEC_PRO_AMT)
+MEAN_OF_PRORATED_VALUES <- c(JAN_MEAN_PRORATED, FEB_MEAN_PRORATED, MAR_MEAN_PRORATED, APR_MEAN_PRORATED,
+                             MAY_MEAN_PRORATED, JUN_MEAN_PRORATED, JUL_MEAN_PRORATED, AUG_MEAN_PRORATED,
+                             SEP_MEAN_PRORATED, OCT_MEAN_PRORATED, NOV_MEAN_PRORATED, DEC_MEAN_PRORATED)
+
+#Means_For_Comparison <- tibble(t(months_of_year), t(MEAN_OF_REPORTED_VALUES), t(MEAN_OF_PRORATED_VALUES)) 
+
+Means_For_Comparison <- tibble(months_of_year, MEAN_OF_REPORTED_VALUES, MEAN_OF_PRORATED_VALUES)
+
+ggplot(data = Means_For_Comparison, mapping = aes(x = months_of_year, y = MEAN_OF_REPORTED_VALUES, group = 1)) + # group=1 tells ggplot that the points form one line
+  geom_line() +
+  geom_point() +
+  labs(x = "", y = "MEAN OF VALUES (AF)")
+
+Means_For_Comparison_Long <- Means_For_Comparison |>
+  pivot_longer(
+    cols = c(MEAN_OF_REPORTED_VALUES, MEAN_OF_PRORATED_VALUES),
+    names_to = "Metric",
+    values_to = "Value"
+  )
+# cols: the columns in Means_For_Comparison that will become rows
+# names_to: creates column that contains the name of the original columns; used in following ggplot to differentiate the data series and color them
+# values_to: creates column of user-specified name that contains the values of the original columns
+
+ggplot(data = Means_For_Comparison_Long, aes(x = months_of_year, y = Value, color = Metric, group = Metric)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "", y = "Mean of Values (AF)")
+
+# Shiny dashboard----
 
 library(shiny)
 
