@@ -241,8 +241,13 @@ NV_df_long <- NV_df_select |>
   mutate(MONTH = str_extract(MONTHLY_COL, "^[A-Z]{3}") |> factor(toupper(month.abb))) |>
   mutate(TYPE = str_extract(MONTHLY_COL, "[A-Z]+_[A-Z]+$"))
 
-ggplot(NV_df_long, mapping = aes(x = MONTH, y = MONTHLY_VALUE, color = TYPE)) +
-  geom_point() # it recreates the above plot!
+plot_all <- ggplot(NV_df_long, mapping = aes(x = MONTH, y = MONTHLY_VALUE, color = TYPE)) +
+  geom_point() + # it recreates the above plot!
+  labs(x = "", y = "Monthly Value (AF)") +
+  scale_color_discrete(labels = c("Reported Mean", "Prorated")) +
+  theme_bw()
+
+ggsave("NV_Plot_FaceValue_and_Prorated.jpeg", path = "./Outputs/", width = 1820, height = 720, units = "px", dpi = 300)
 
 # Compare reported mean and prorated monthly values ----
 
