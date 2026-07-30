@@ -249,7 +249,12 @@ NV_Statements |>
   theme_bw()
 
 # Average all the reported and prorated monthly values ----
-months_of_year <- factor(toupper(month.abb))
+months_of_year <- factor(
+  toupper(month.abb),
+  levels = c("JAN", "FEB", "MAR", "APR",
+             "MAY", "JUN", "JUL", "AUG",
+             "SEP", "OCT", "NOV", "DEC")
+  )
 
 JAN_MEAN <- mean(NV_Statements$JAN_MEAN_DIV)
 FEB_MEAN <- mean(NV_Statements$FEB_MEAN_DIV)
@@ -304,17 +309,23 @@ ggplot(data = Means_For_Comparison, mapping = aes(x = months_of_year, y = MEAN_O
 Means_For_Comparison_Long <- Means_For_Comparison |>
   pivot_longer(
     cols = c(MEAN_OF_REPORTED_VALUES, MEAN_OF_PRORATED_VALUES),
-    names_to = "Metric",
+    names_to = "Type",
     values_to = "Value"
   )
 # cols: the columns in Means_For_Comparison that will become rows
 # names_to: creates column that contains the name of the original columns; used in following ggplot to differentiate the data series and color them
 # values_to: creates column of user-specified name that contains the values of the original columns
 
-ggplot(data = Means_For_Comparison_Long, aes(x = months_of_year, y = Value, color = Metric, group = Metric)) +
+graph_compare_means <- ggplot(data = Means_For_Comparison_Long, aes(x = months_of_year, y = Value, color = Type, group = Type)) +
   geom_line() +
   geom_point() +
-  labs(x = "", y = "Mean of Values (AF)")
+  scale_color_discrete(
+    labels = c("MEAN_OF_PRORATED_VALUES" = "Prorated",
+               "MEAN_OF_REPORTED_VALUES" = "Reported")
+  ) +
+  labs(x = "", y = "Mean of Values (AF)") +
+  theme_bw()
+ggsave("NV_Plot_All_Riparian_Means.jpeg", path = "./Outputs/", width = 1820, height = 720, units = "px", dpi = 300)
 
 # Shiny dashboard----
 
