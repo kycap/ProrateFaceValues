@@ -1,7 +1,5 @@
 # Estimating riparian and pre-1914 water use
 
-# This will estimate water usage by the aforementioned statements by using crop water demand
-
 # Setup ----
 base::remove(list = ls())
 library(tidyverse)
@@ -165,18 +163,6 @@ for (i in 1:nrow(NV_Statements)) {
   NV_Statements$DEC_PRO_AMT[i][is.na(NV_Statements$DEC_PRO_AMT[i])] <- 0
 }
 
-# Watershed Characteristics ----
-
-# Model Development Report states 141 acres are Pasture/Hay, 639 acres are Cultivated Crops
-# Alfalfa hay requires more water than most other crops, so assume the entire area is planted with alfalfa
-area_pasture_hay = 141
-area_cultivated_crops = 639
-area = area_pasture_hay + area_cultivated_crops
-
-alfalfa_water = 4 # AF/season/acre of alfalfa (https://www.utahfoundation.org/uploads/Hay-One-Crop-is-Utahs-Largest-Water-Consumer.pdf)
-
-area_per = area / length(NV_Statements)
-
 # Plotting ----
 
 # create df, select specified columns, incl. those that contain <something>_COUNT
@@ -256,6 +242,7 @@ months_of_year <- factor(
              "SEP", "OCT", "NOV", "DEC")
   )
 
+# reported values
 JAN_MEAN <- mean(NV_Statements$JAN_MEAN_DIV)
 FEB_MEAN <- mean(NV_Statements$FEB_MEAN_DIV)
 MAR_MEAN <- mean(NV_Statements$MAR_MEAN_DIV)
@@ -272,14 +259,6 @@ MEAN_OF_REPORTED_VALUES <- c(JAN_MEAN, FEB_MEAN, MAR_MEAN, APR_MEAN,
                              MAY_MEAN, JUN_MEAN, JUL_MEAN, AUG_MEAN,
                              SEP_MEAN, OCT_MEAN, NOV_MEAN, DEC_MEAN)
 
-
-# MEAN_OF_REPORTED_VALUES <- paste0(toupper(month.abb), "_MEAN_DIV") |>
-#   set_names(paste0(toupper(month.abb), "_MEAN"))
-# 
-# 
-# NV_Statements |>
-#   summarize(across(matches("^[A-Z]{3}_MEAN_DIV$"), mean)) |>
-#   rename(any_of(MEAN_OF_REPORTED_VALUES))
 
 JAN_MEAN_PRORATED <- mean(NV_Statements$JAN_PRO_AMT)
 FEB_MEAN_PRORATED <- mean(NV_Statements$FEB_PRO_AMT)
