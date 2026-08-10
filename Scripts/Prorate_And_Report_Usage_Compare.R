@@ -249,6 +249,76 @@ plot_all <- ggplot(NV_df_long, mapping = aes(x = MONTH, y = MONTHLY_VALUE, color
 
 ggsave("NV_Plot_FaceValue_and_Prorated.jpeg", path = "./Outputs/", width = 1820, height = 720, units = "px", dpi = 300)
 
+# Average all the reported and prorated monthly values ----
+months_of_year <- factor(
+  toupper(month.abb),
+  levels = c("JAN", "FEB", "MAR", "APR",
+             "MAY", "JUN", "JUL", "AUG",
+             "SEP", "OCT", "NOV", "DEC")
+)
+
+# reported values
+JAN_MEAN <- mean(NV_df$JAN_MEAN_DIV)
+FEB_MEAN <- mean(NV_df$FEB_MEAN_DIV)
+MAR_MEAN <- mean(NV_df$MAR_MEAN_DIV)
+APR_MEAN <- mean(NV_df$APR_MEAN_DIV)
+MAY_MEAN <- mean(NV_df$MAY_MEAN_DIV)
+JUN_MEAN <- mean(NV_df$JUN_MEAN_DIV)
+JUL_MEAN <- mean(NV_df$JUL_MEAN_DIV)
+AUG_MEAN <- mean(NV_df$AUG_MEAN_DIV)
+SEP_MEAN <- mean(NV_df$SEP_MEAN_DIV)
+OCT_MEAN <- mean(NV_df$OCT_MEAN_DIV)
+NOV_MEAN <- mean(NV_df$NOV_MEAN_DIV)
+DEC_MEAN <- mean(NV_df$DEC_MEAN_DIV)
+MEAN_OF_REPORTED_VALUES <- c(JAN_MEAN, FEB_MEAN, MAR_MEAN, APR_MEAN,
+                             MAY_MEAN, JUN_MEAN, JUL_MEAN, AUG_MEAN,
+                             SEP_MEAN, OCT_MEAN, NOV_MEAN, DEC_MEAN)
+
+
+JAN_MEAN_PRORATED <- mean(NV_df$JAN_PRO_FV)
+FEB_MEAN_PRORATED <- mean(NV_df$FEB_PRO_FV)
+MAR_MEAN_PRORATED <- mean(NV_df$MAR_PRO_FV)
+APR_MEAN_PRORATED <- mean(NV_df$APR_PRO_FV)
+MAY_MEAN_PRORATED <- mean(NV_df$MAY_PRO_FV)
+JUN_MEAN_PRORATED <- mean(NV_df$JUN_PRO_FV)
+JUL_MEAN_PRORATED <- mean(NV_df$JUL_PRO_FV)
+AUG_MEAN_PRORATED <- mean(NV_df$AUG_PRO_FV)
+SEP_MEAN_PRORATED <- mean(NV_df$SEP_PRO_FV)
+OCT_MEAN_PRORATED <- mean(NV_df$OCT_PRO_FV)
+NOV_MEAN_PRORATED <- mean(NV_df$NOV_PRO_FV)
+DEC_MEAN_PRORATED <- mean(NV_df$DEC_PRO_FV)
+MEAN_OF_PRORATED_VALUES <- c(JAN_MEAN_PRORATED, FEB_MEAN_PRORATED, MAR_MEAN_PRORATED, APR_MEAN_PRORATED,
+                             MAY_MEAN_PRORATED, JUN_MEAN_PRORATED, JUL_MEAN_PRORATED, AUG_MEAN_PRORATED,
+                             SEP_MEAN_PRORATED, OCT_MEAN_PRORATED, NOV_MEAN_PRORATED, DEC_MEAN_PRORATED)
+
+Means_For_Comparison <- tibble(months_of_year, MEAN_OF_REPORTED_VALUES, MEAN_OF_PRORATED_VALUES)
+
+ggplot(data = Means_For_Comparison, mapping = aes(x = months_of_year, y = MEAN_OF_REPORTED_VALUES, group = 1)) + # group=1 tells ggplot that the points form one line
+  geom_line() +
+  geom_point() +
+  labs(x = "", y = "MEAN OF VALUES (AF)")
+
+Means_For_Comparison_Long <- Means_For_Comparison |>
+  pivot_longer(
+    cols = c(MEAN_OF_REPORTED_VALUES, MEAN_OF_PRORATED_VALUES),
+    names_to = "Type",
+    values_to = "Value"
+  )
+# cols: the columns in Means_For_Comparison that will become rows
+# names_to: creates column that contains the name of the original columns; used in following ggplot to differentiate the data series and color them
+# values_to: creates column of user-specified name that contains the values of the original columns
+
+graph_compare_means <- ggplot(data = Means_For_Comparison_Long, aes(x = months_of_year, y = Value, color = Type, group = Type)) +
+  geom_line() +
+  geom_point() +
+  scale_color_discrete(
+    labels = c("MEAN_OF_PRORATED_VALUES" = "Prorated",
+               "MEAN_OF_REPORTED_VALUES" = "Reported")
+  ) +
+  labs(x = "", y = "Water Use (AF)", title = "Monthly Mean for All Appropriative Rights") +
+  theme_bw()
+ggsave("NV_Plot_All_Appropriative_Means.jpeg", path = "./Outputs/", width = 1820, height = 720, units = "px", dpi = 300)
+
 # Compare reported mean and prorated monthly values ----
 
 library(shiny)
