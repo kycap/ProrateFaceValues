@@ -276,8 +276,6 @@ MEAN_OF_PRORATED_VALUES <- c(JAN_MEAN_PRORATED, FEB_MEAN_PRORATED, MAR_MEAN_PROR
                              MAY_MEAN_PRORATED, JUN_MEAN_PRORATED, JUL_MEAN_PRORATED, AUG_MEAN_PRORATED,
                              SEP_MEAN_PRORATED, OCT_MEAN_PRORATED, NOV_MEAN_PRORATED, DEC_MEAN_PRORATED)
 
-#Means_For_Comparison <- tibble(t(months_of_year), t(MEAN_OF_REPORTED_VALUES), t(MEAN_OF_PRORATED_VALUES)) 
-
 Means_For_Comparison <- tibble(months_of_year, MEAN_OF_REPORTED_VALUES, MEAN_OF_PRORATED_VALUES)
 
 ggplot(data = Means_For_Comparison, mapping = aes(x = months_of_year, y = MEAN_OF_REPORTED_VALUES, group = 1)) + # group=1 tells ggplot that the points form one line
@@ -302,7 +300,7 @@ graph_compare_means <- ggplot(data = Means_For_Comparison_Long, aes(x = months_o
     labels = c("MEAN_OF_PRORATED_VALUES" = "Prorated",
                "MEAN_OF_REPORTED_VALUES" = "Reported")
   ) +
-  labs(x = "", y = "Mean of Values (AF)") +
+  labs(x = "", y = "Water Use (AF)", title = "Monthly Mean for All Riparian & Pre-1914") +
   theme_bw()
 ggsave("NV_Plot_All_Riparian_Means.jpeg", path = "./Outputs/", width = 1820, height = 720, units = "px", dpi = 300)
 
