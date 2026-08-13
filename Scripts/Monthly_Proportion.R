@@ -92,16 +92,18 @@ propDF <- mdt |>
   select(APPLICATION_NUMBER, contains("_PROP")) |>
   pivot_longer(contains("_PROP"), names_to = "MONTH_PROPORTION", values_to = "PROPORTION")
 
-propDF |>
-  mutate(MONTH = MONTH_PROPORTION |> map_dbl(~ which(toupper(str_remove(., "_.+$")) == toupper(month.abb)) |>
-                                               arrange(MONTH)))
+# propDF |>
+#   mutate(MONTH = MONTH_PROPORTION |> map_dbl(~ which(toupper(str_remove(., "_.+$")) == toupper(month.abb)) |>
+#                                                arrange(MONTH)))
 
-#MONTH = factor(toupper(month.abb))
+month_order <- c("JAN_PROP", "FEB_PROP", "MAR_PROP", "APR_PROP",
+                 "MAY_PROP", "JUN_PROP", "JUL_PROP", "AUG_PROP",
+                 "SEP_PROP", "OCT_PROP", "NOV_PROP", "DEC_PROP")
 
-#propDF <- propDF |>
-  mutate(MONTH = 238 * factor(toupper(month.abb)))
+propDF_plotting <- propDF |>
+  mutate(MONTH_PROPORTION = factor(MONTH_PROPORTION, levels = month_order)) # changes MONTH_PROPORTION from chr to fct
 
-ggplot(propDF, aes(x = MONTH_PROPORTION, y = PROPORTION)) +
+ggplot(propDF_plotting, aes(x = MONTH_PROPORTION, y = PROPORTION)) +
   geom_boxplot() +
   labs(x = "Month", y = "Monthly Proportion") # despite NAs, there is no error when plotting so it must ignore NA (Warning message: Removed 708 rows containing non-finite outside the scale range ('stat_boxplot()'))
 # in Console: propDF |> count(PROPORTION == 0); among the result is 708 NA
