@@ -22,26 +22,15 @@ appl_1_pivot <- appl_1 |>
 
 # add column w/ months as factor to the long data frame
 
-appl_1_pivot$name |> # change $name to $MONTH_TOTAL
+appl_1_pivot$MONTH_TOTAL |> 
   str_to_title() |>
   str_extract("^.{3}")
 
-appl_1_pivot |>
-  mutate(MONTH = factor(MONTH_TOTAL, levels = months)) # the MONTH column fills w/ NA b/c characters in MONTH_TOTAL do not match months level
+#appl_1_pivot |>
+#  mutate(MONTH = factor(MONTH_TOTAL, levels = months)) # the MONTH column fills w/ NA b/c characters in MONTH_TOTAL do not match months level
 # if a value doesn't match the level, R makes it NA
-# fix by doing the following
+# fix by doing the following mutate and ggplot
 
-appl_1_pivot |>
-  mutate(
-    MONTH_STR = str_extract(MONTH_TOTAL, paste(months, collapse = "|")),
-    MONTH = factor(MONTH_STR, levels = months)
-  ) # doesn't save MONTH_STR or MONTH (i.e., when I view the df, those columns aren't there but they show in the console). need to save to new variable
-
-ggplot(appl_1_pivot, aes(x = YEAR, y = value, fill = YEAR)) + 
-  geom_col()
-  #scale_color_manual(c("Jan" = "red", "Feb" = "#00FFAA"))
-
-# try again: mutate and ggplot
 appl_1_pivot_mutate <- appl_1_pivot |>
   mutate(
     MONTH_STR = str_extract(MONTH_TOTAL, paste(months, collapse = "|")),
@@ -49,7 +38,7 @@ appl_1_pivot_mutate <- appl_1_pivot |>
     YEAR = as.factor(YEAR)
   )
 # must do year as factor, otherwise the values for the years stack on top of each other for their corresponding month
-ggplot(appl_1_pivot_mutate, aes(x = MONTH, y = value, fill = YEAR)) +
+ggplot(appl_1_pivot_mutate, aes(x = MONTH, y = WATER_VOLUME, fill = YEAR)) +
   geom_col(position = "dodge") +
   labs(x = "",
        y = "Water Volume (AF)",
